@@ -4,6 +4,7 @@ mkdir -p /root/workspace/git/coturn
 mkdir -p /etc/coturn
 mkdir -p /etc/turnconfig
 mkdir -p /etc/turnlog
+chmod 777 -R /etc/turnlog
 
 apt-get update && apt-get upgrade -y && \
 # 安装你需要的软件
