@@ -72,5 +72,7 @@ EOF
 
 systemctl daemon-reload
 
+echo "\n\n#################################################################"
 echo "Congratulations! You have install CoTurn Server successfully! "
 echo "Use 'systemctl start coturn' to start turn server."
+echo "#################################################################"
