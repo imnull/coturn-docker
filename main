@@ -1,0 +1,76 @@
+#!/bin/sh
+
+mkdir -p /root/workspace/git/coturn
+mkdir -p /etc/coturn
+mkdir -p /etc/turnconfig
+mkdir -p /etc/turnlog
+
+apt-get update && apt-get upgrade -y && \
+# 安装你需要的软件
+apt-get install -y \
+git wget vim libmicrohttpd-dev build-essential \
+sqlite3 libsqlite3-dev pkgconf libssl-dev libssl-doc \
+libevent-dev && \
+mkdir -p /root/workspace/git/coturn && \
+wget -P /root/workspace/ https://github.com/digitalocean/prometheus-client-c/releases/download/v0.1.3/libprom-dev-0.1.3-Linux.deb && \
+wget -P /root/workspace/ https://github.com/digitalocean/prometheus-client-c/releases/download/v0.1.3/libpromhttp-dev-0.1.3-Linux.deb && \
+dpkg -i /root/workspace/libprom-dev-0.1.3-Linux.deb && \
+dpkg -i /root/workspace/libpromhttp-dev-0.1.3-Linux.deb && \
+git clone https://github.com/coturn/coturn.git /root/workspace/git/coturn && \
+cd /root/workspace/git/coturn && \
+  ./configure --prefix=/etc/coturn && \
+  make && \
+  make install
+
+
+cat <<EOF >/etc/turnconfig/turnserver.conf
+# Listening IP address and port for TURN server
+listening-ip=0.0.0.0
+# listening-port=3478
+
+# Relay addresses (external IP address of the server)
+# external-ip=your_external_ip_address/hostname
+
+# Realm for the TURN server
+realm=mrnull
+
+# TURN server user credentials
+user=user:passwd
+
+cli-password=
+
+# Use long-term credential mechanism
+lt-cred-mech
+
+# Enable verbose logging
+verbose
+prometheus
+
+# Log file location (optional)
+log-file=/etc/turnlog/turnserver.log
+
+#min-port=49152
+#max-port=65535
+
+EOF
+
+cat <<EOF >/etc/systemd/system/coturn.service
+[Unit]
+Description=coturn
+After=network.target
+
+[Service]
+ExecStart=/etc/coturn/bin/turnserver -c /etc/turnconfig/turnserver.conf
+Restart=always
+User=nobody
+Group=nogroup
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+
+systemctl daemon-reload
+
+echo "Congratulations! You have install CoTurn Server successfully! "
+echo "Use 'systemctl start coturn' to start turn server."
